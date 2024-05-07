@@ -1,10 +1,3 @@
-//
-//  TrackerTests.swift
-//  TrackerTests
-//
-//  Created by Anton on 16.04.2024.
-//
-
 import XCTest
 @testable import Tracker
 
