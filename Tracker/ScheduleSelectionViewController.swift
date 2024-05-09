@@ -13,7 +13,7 @@ final class ScheduleSelectionViewController: UIViewController {
     let scheduleTable: UITableView = {
         let table = UITableView()
         table.register(ScheduleCell.self, forCellReuseIdentifier: "schedule")
-        table.isScrollEnabled = false
+        table.isScrollEnabled = true
         table.separatorStyle = .singleLine
         table.layer.cornerRadius = 16
         table.translatesAutoresizingMaskIntoConstraints = false
@@ -50,7 +50,8 @@ final class ScheduleSelectionViewController: UIViewController {
             scheduleTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             scheduleTable.heightAnchor.constraint(equalToConstant: CGFloat(75 * daysOfWeek.count)),
-            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            doneButton.topAnchor.constraint(equalTo: scheduleTable.bottomAnchor, constant: 16),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),

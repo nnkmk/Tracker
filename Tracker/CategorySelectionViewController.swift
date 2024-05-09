@@ -78,13 +78,20 @@ final class CategorySelectionViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            addCategoryButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+
+            categoriesTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            categoriesTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            categoriesTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+            categoriesTable.bottomAnchor.constraint(equalTo: addCategoryButton.topAnchor, constant: -16),
+            
+            addCategoryButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addCategoryButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             addCategoryButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addCategoryButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            addCategoryButton.heightAnchor.constraint(equalToConstant: 60)
+            addCategoryButton.heightAnchor.constraint(equalToConstant: 60),
+            
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
         if !categories.isEmpty {
             stackView.isHidden = true
