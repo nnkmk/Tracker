@@ -1,7 +1,6 @@
 import UIKit
 
 var trackers: [TrackerCategory] = []
-var categories = ["Важное", "Радостные мелочи", "Самочувствие", "Привычки", "Внимательность", "Спорт"]
 var categoryName = ""
 let daysOfWeek: [weekdays] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
 var selectedDays: [String] = []

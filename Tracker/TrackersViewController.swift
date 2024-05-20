@@ -2,24 +2,24 @@ import UIKit
 
 class TrackersViewController: UIViewController {
     
+    static let categories = ["Важное", "Радостные мелочи", "Самочувствие", "Привычки", "Внимательность", "0Спорт"]
+    
+    var currentDate: Date = Date()
     var choosenDay = ""
     var dateString = ""
     var changeByNumbers = "дней"
-    var localTrackers: [TrackerCategory] = trackers
+    var localTrackers: [TrackerCategory] = []
+    
     var trackersCollection: UICollectionView = {
-        let collection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 9
+        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collection.translatesAutoresizingMaskIntoConstraints = false
         collection.register(TrackerCell.self, forCellWithReuseIdentifier: "trackers")
         collection.register(CollectionHeaderSupplementaryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
         collection.showsVerticalScrollIndicator = false
-        let layout: UICollectionViewFlowLayout = {
-            let layout = UICollectionViewFlowLayout()
-            layout.scrollDirection = .vertical
-            layout.minimumInteritemSpacing = 0
-            layout.minimumLineSpacing = 9
-            return layout
-        }()
-        collection.collectionViewLayout = layout
         return collection
     }()
     
@@ -41,15 +41,14 @@ class TrackersViewController: UIViewController {
     }()
     
     let datePicker: UIDatePicker = {
-        let datePicker = UIDatePicker()
-        datePicker.preferredDatePickerStyle = .compact
-        datePicker.datePickerMode = .date
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-        datePicker.calendar = Calendar(identifier: .iso8601)
-        datePicker.maximumDate = Date()
-        datePicker.locale = Locale(identifier: "ru_RU")
-        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
-        return datePicker
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .compact
+        picker.datePickerMode = .date
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.calendar = Calendar(identifier: .iso8601)
+        picker.maximumDate = Date()
+        picker.locale = Locale(identifier: "ru_RU")
+        return picker
     }()
     
     let starImage: UIImageView = {
@@ -89,6 +88,7 @@ class TrackersViewController: UIViewController {
         hideCollection()
         setupProperties()
         setupView()
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
     }
     
     private func setupView() {
@@ -174,7 +174,8 @@ class TrackersViewController: UIViewController {
         }
     }
     
-    @objc   func datePickerValueChanged(sender: UIDatePicker) {
+    @objc func datePickerValueChanged(sender: UIDatePicker) {
+        currentDate = sender.date
         makeDate(dateFormat: "EEEE")
         updateCollection()
         hideCollection()
@@ -248,6 +249,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: (view.frame.width - 41) / 2, height: 148)
     }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.frame.width, height: 40)
     }
@@ -273,6 +275,7 @@ extension TrackersViewController: UISearchBarDelegate {
                     isGood = true
                 }
             }
+            
             if isGood {
                 newTrackers.append(TrackerCategory(label: newCategory, trackers: newEvents))
                 newEvents = []
@@ -283,9 +286,11 @@ extension TrackersViewController: UISearchBarDelegate {
         localTrackers = newTrackers
         trackersCollection.reloadData()
     }
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
+    
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
@@ -310,11 +315,10 @@ extension TrackersViewController {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "ru_RU")
         dateFormatter.dateFormat = dateFormat
-        let dateFormatterString = dateFormatter.string(from: datePicker.date)
         if dateFormat == "EEEE" {
-            choosenDay = dateFormatterString
+            choosenDay = dateFormatter.string(from: currentDate)
         } else if dateFormat == "yyyy/MM/dd" {
-            dateString = dateFormatterString
+            dateString = dateFormatter.string(from: currentDate)
         }
     }
 }

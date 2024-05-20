@@ -78,7 +78,7 @@ final class CategorySelectionViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
+            
             categoriesTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoriesTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             categoriesTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
@@ -93,13 +93,13 @@ final class CategorySelectionViewController: UIViewController {
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-        if !categories.isEmpty {
+        if TrackersViewController.categories.isEmpty {
             stackView.isHidden = true
             NSLayoutConstraint.activate([
                 categoriesTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
                 categoriesTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
                 categoriesTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
-                categoriesTable.heightAnchor.constraint(equalToConstant: CGFloat(75 * categories.count))
+                categoriesTable.heightAnchor.constraint(equalToConstant: CGFloat(75 * TrackersViewController.categories.count))
             ])
         }
     }
@@ -108,7 +108,7 @@ final class CategorySelectionViewController: UIViewController {
 extension CategorySelectionViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        return TrackersViewController.categories.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -117,7 +117,7 @@ extension CategorySelectionViewController: UITableViewDataSource {
             return UITableViewCell()
         }
         cell.selectionStyle = .none
-        categoryCell.title.text = categories[indexPath.row]
+        categoryCell.title.text = TrackersViewController.categories[indexPath.row]
         return categoryCell
     }
     
@@ -127,10 +127,9 @@ extension CategorySelectionViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            categories.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
-        if categories.isEmpty {
+        if TrackersViewController.categories.isEmpty {
             categoriesTable.isHidden = true
             stackView.isHidden = false
         }
@@ -138,14 +137,17 @@ extension CategorySelectionViewController: UITableViewDataSource {
 }
 
 extension CategorySelectionViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
     }
+    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: cell.bounds.size.width)
         }
     }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as? CategoryCell
         cell?.checkbox.image = UIImage(systemName: "checkmark")
@@ -156,10 +158,12 @@ extension CategorySelectionViewController: UITableViewDelegate {
             NotificationCenter.default.post(notification)
         }
     }
+    
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as? CategoryCell
         cell?.checkbox.image = UIImage()
     }
+    
     func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
         return "Удалить"
     }

@@ -200,8 +200,7 @@ final class NewIrregularEventViewController: UIViewController {
         }
     }
     
-    @objc
-    private func showCategory() {
+    @objc private func showCategory() {
         categoriesTable.reloadData()
         activateButton()
     }

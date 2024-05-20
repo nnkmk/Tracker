@@ -201,8 +201,7 @@ final class NewHabitViewController: UIViewController {
         UIApplication.shared.windows.first?.rootViewController?.dismiss(animated: true, completion: nil)
     }
     
-    @objc
-    private func changeFirstCell() {
+    @objc private func changeFirstCell() {
         let cell = categoriesTable.cellForRow(at: [0,0]) as? HabitCategoryCell
         cell?.title.removeFromSuperview()
         cell?.addSubview(cell!.title)
@@ -214,8 +213,7 @@ final class NewHabitViewController: UIViewController {
         activateButton()
     }
     
-    @objc
-    private func changeSchedule() {
+    @objc private func changeSchedule() {
         let cell = categoriesTable.cellForRow(at: [0,1]) as? HabitCategoryCell
         cell?.title.removeFromSuperview()
         cell?.addSubview(cell!.title)
@@ -227,11 +225,9 @@ final class NewHabitViewController: UIViewController {
         activateButton()
     }
     
-    @objc
-    func dismissKeyboard() {
+    @objc func dismissKeyboard() {
         enterNameTextField.resignFirstResponder()
     }
-    
 }
 
 extension NewHabitViewController: UITextFieldDelegate {
@@ -240,13 +236,13 @@ extension NewHabitViewController: UITextFieldDelegate {
         textField.resignFirstResponder()
         return true
     }
+    
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if textField.hasText {
             activateButton()
         }
         return true
     }
-    
 }
 
 extension NewHabitViewController: UITableViewDataSource {
@@ -269,7 +265,6 @@ extension NewHabitViewController: UITableViewDataSource {
         }
         return categoryCell
     }
-    
 }
 
 extension NewHabitViewController: UITableViewDelegate {
@@ -277,11 +272,13 @@ extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 71
     }
+    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: cell.bounds.size.width)
         }
     }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
             let choiceOfCategoryViewController = CategorySelectionViewController()
@@ -291,7 +288,6 @@ extension NewHabitViewController: UITableViewDelegate {
             show(scheduleViewController, sender: self)
         }
     }
-    
 }
 
 extension NewHabitViewController: UICollectionViewDataSource {
@@ -303,6 +299,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
             return emojiCollectionData.count
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == colorCollection {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorCell else {
@@ -318,6 +315,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
             return cell
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if collectionView == colorCollection {
             if let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? CollectionHeaderSupplementaryView {
@@ -339,15 +337,19 @@ extension NewHabitViewController: UICollectionViewDataSource {
 }
 
 extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: (view.bounds.width-56) / 6, height: 50)
     }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 40)
     }
@@ -370,6 +372,7 @@ extension NewHabitViewController: UICollectionViewDelegate {
             activateButton()
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
         if collectionView == colorCollection {
             let cell = collectionView.cellForItem(at: indexPath) as? ColorCell
