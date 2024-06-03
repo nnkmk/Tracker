@@ -2,7 +2,7 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     
-    var delegate: TrackersViewControllerProtocol?
+    weak var delegate: TrackersViewControllerProtocol?
     
     var emoji: UILabel = {
         let label = UILabel()
@@ -68,29 +68,37 @@ final class TrackerCell: UICollectionViewCell {
     
     private func setupView() {
         textBackground.addSubview(emoji)
+        
         viewBackground.addSubview(name)
         viewBackground.addSubview(textBackground)
+        
         contentView.addSubview(viewBackground)
         contentView.addSubview(quantity)
         contentView.addSubview(plusButton)
+        
         NSLayoutConstraint.activate([
             viewBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             viewBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             viewBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
             viewBackground.heightAnchor.constraint(equalToConstant: 90),
+            
             textBackground.leadingAnchor.constraint(equalTo: viewBackground.leadingAnchor, constant: 12),
             textBackground.topAnchor.constraint(equalTo: viewBackground.topAnchor, constant: 12),
             textBackground.heightAnchor.constraint(equalToConstant: 24),
             textBackground.widthAnchor.constraint(equalToConstant: 24),
+            
             emoji.centerXAnchor.constraint(equalTo: textBackground.centerXAnchor),
             emoji.centerYAnchor.constraint(equalTo: textBackground.centerYAnchor),
+            
             name.centerXAnchor.constraint(equalTo: viewBackground.centerXAnchor),
             name.leadingAnchor.constraint(equalTo: viewBackground.leadingAnchor, constant: 12),
             name.bottomAnchor.constraint(equalTo: viewBackground.bottomAnchor, constant: -12),
+            
             plusButton.topAnchor.constraint(equalTo: viewBackground.bottomAnchor, constant: 8),
             plusButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             plusButton.heightAnchor.constraint(equalToConstant: 34),
             plusButton.widthAnchor.constraint(equalToConstant: 34),
+            
             quantity.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             quantity.topAnchor.constraint(equalTo: viewBackground.bottomAnchor, constant: 16),
             quantity.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)

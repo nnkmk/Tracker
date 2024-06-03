@@ -1,6 +1,10 @@
 import UIKit
 
-final class NewHabitViewController: UIViewController {
+final class NewHabitViewController: UIViewController, CategorySelectionDelegate {
+    
+    var categories: [TrackerCategory] = []
+    var selectedCategory: TrackerCategory?
+    var isRegular: Bool = true
     
     let titleLabel: UILabel = {
         let label = UILabel()
@@ -109,51 +113,69 @@ final class NewHabitViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
             scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scroll.topAnchor.constraint(equalTo: titleLabel.bottomAnchor),
             scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
             enterNameTextField.heightAnchor.constraint(equalToConstant: 71),
+            
             firstStack.topAnchor.constraint(equalTo: scroll.topAnchor, constant: 24),
             firstStack.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
             firstStack.heightAnchor.constraint(equalToConstant: 225),
             firstStack.leadingAnchor.constraint(equalTo: scroll.leadingAnchor, constant: 16),
+            
             emojiCollection.topAnchor.constraint(equalTo: firstStack.bottomAnchor, constant: 24),
             emojiCollection.heightAnchor.constraint(equalToConstant: 200),
             emojiCollection.leadingAnchor.constraint(equalTo: scroll.leadingAnchor, constant: 16),
             emojiCollection.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
             emojiCollection.widthAnchor.constraint(equalTo: firstStack.widthAnchor),
+            
             colorCollection.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor),
             colorCollection.heightAnchor.constraint(equalToConstant: 200),
             colorCollection.leadingAnchor.constraint(equalTo: scroll.leadingAnchor, constant: 16),
             colorCollection.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
             colorCollection.widthAnchor.constraint(equalTo: firstStack.widthAnchor),
+            
             secondStack.heightAnchor.constraint(equalToConstant: 60),
             secondStack.leadingAnchor.constraint(equalTo: scroll.leadingAnchor, constant: 28),
             secondStack.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
             secondStack.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 24),
         ])
+        if !isRegular {
+            categoriesTable.isHidden = true
+            titleLabel.text = "Новое нерегулярное событие"
+        }
     }
     
     private func setupProperties() {
         categoryName = ""
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
+        
         NotificationCenter.default.addObserver(self, selector: #selector(changeFirstCell), name: Notification.Name("category_changed"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(changeSchedule), name: Notification.Name("schedule_changed"), object: nil)
+        
         view.backgroundColor = .white
+        
         firstStack.addArrangedSubview(enterNameTextField)
         firstStack.addArrangedSubview(categoriesTable)
+        
         secondStack.addArrangedSubview(cancelButton)
         secondStack.addArrangedSubview(createButton)
+        
         scroll.addSubview(firstStack)
         scroll.addSubview(emojiCollection)
         scroll.addSubview(colorCollection)
         scroll.addSubview(secondStack)
+        
         view.addSubview(titleLabel)
         view.addSubview(scroll)
         view.addGestureRecognizer(tapGesture)
+        
         scroll.contentSize = CGSize(width: view.frame.width, height: 779)
+        
         categoriesTable.dataSource = self
         categoriesTable.delegate = self
         colorCollection.delegate = self
@@ -170,35 +192,61 @@ final class NewHabitViewController: UIViewController {
         }
     }
     
+    internal func categorySelected(_ category: TrackerCategory) {
+        selectedCategory = category
+        categoryName = category.label
+        print("Выбрана категория: \(category.label)")
+        changeFirstCell()
+        activateButton()
+    }
+    
+    private func saveCategories(categories: [TrackerCategory]) {
+        if let encoded = try? JSONEncoder().encode(categories) {
+            UserDefaults.standard.set(encoded, forKey: "categories")
+            print("Категории успешно сохранены")
+        } else {
+            print("Ошибка при сохранении категорий")
+        }
+    }
+    
     @objc private func cancel() {
         dismiss(animated: true)
     }
     
     @objc private func create() {
-        let name = enterNameTextField.text ?? ""
-        let category = categoryName
+        guard let name = enterNameTextField.text, !name.isEmpty else { return }
+        guard !categoryName.isEmpty else { return }
+        
         let emojiIndex = emojiCollection.indexPathsForSelectedItems?.first
-        let emoji = emojiCollectionData[emojiIndex?.row ?? 0]
+        guard let emoji = emojiCollectionData[emojiIndex?.row ?? 0] as? String else { return }
+        
         let colorIndex = colorCollection.indexPathsForSelectedItems?.first
-        let color = colorCollectionData[colorIndex?.row ?? 0]
+        guard let color = colorCollectionData[colorIndex?.row ?? 0] as? UIColor else { return }
+        
         let day = selectedDays
-        let event = Tracker(name: name, emoji: emoji, color: color, day: day)
-        var allTrackersInCategory: [Tracker] = []
-        for tracker in trackers {
-            if tracker.label == category {
-                allTrackersInCategory = tracker.trackers
-                trackers.removeAll(where: {$0.label == category})
+        let event = Tracker(id: UUID(), name: name, color: color, emoji: emoji, day: day.isEmpty ? nil : day)
+        
+        if var category = trackers.first(where: { $0.label == categoryName }) {
+            category.trackers.append(event)
+            if let index = trackers.firstIndex(where: { $0.label == categoryName }) {
+                trackers[index] = category
             }
+        } else {
+            let newCategory = TrackerCategory(label: categoryName, trackers: [event])
+            trackers.append(newCategory)
         }
-        allTrackersInCategory.append(event)
-        let newTrackersElement = TrackerCategory(label: category, trackers: allTrackersInCategory)
-        trackers.append(newTrackersElement)
+        
+        saveCategories(categories: trackers)
+        
         let notification = Notification(name: Notification.Name("addEvent"))
         NotificationCenter.default.post(notification)
+        
         categoryName = ""
         selectedDays = []
         shortSelectedDays = []
-        UIApplication.shared.windows.first?.rootViewController?.dismiss(animated: true, completion: nil)
+        print("Создание трекера завершено: \(event)")
+        
+        self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
     }
     
     @objc private func changeFirstCell() {
@@ -282,8 +330,10 @@ extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
             let choiceOfCategoryViewController = CategorySelectionViewController()
+            choiceOfCategoryViewController.delegate = self
+            choiceOfCategoryViewController.categories = self.categories
             show(choiceOfCategoryViewController, sender: self)
-        } else {
+        } else if isRegular {
             let scheduleViewController = ScheduleSelectionViewController()
             show(scheduleViewController, sender: self)
         }

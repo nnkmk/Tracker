@@ -1,6 +1,11 @@
 import UIKit
 
+/*
 final class NewIrregularEventViewController: UIViewController {
+    
+    var categories: [TrackerCategory] = []
+    var categoryName: String = ""
+    var selectedCategory: TrackerCategory?
     
     let colorCollection: UICollectionView = {
         let collection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
@@ -64,7 +69,7 @@ final class NewIrregularEventViewController: UIViewController {
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(nil, action: #selector(cancel), for: .touchUpInside)
+        button.addTarget(self, action: #selector(cancel), for: .touchUpInside)
         return button
     }()
     
@@ -75,7 +80,7 @@ final class NewIrregularEventViewController: UIViewController {
         button.backgroundColor = UIColor(red: 0.682, green: 0.686, blue: 0.706, alpha: 1)
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(nil, action: #selector(create), for: .touchUpInside)
+        button.addTarget(self, action: #selector(create), for: .touchUpInside)
         button.isEnabled = false
         return button
     }()
@@ -160,6 +165,15 @@ final class NewIrregularEventViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(showCategory), name: Notification.Name("category_changed"), object: nil)
     }
     
+    private func saveCategories(categories: [TrackerCategory]) {
+        if let encoded = try? JSONEncoder().encode(categories) {
+            UserDefaults.standard.set(encoded, forKey: "categories")
+            print("Категории успешно сохранены")
+        } else {
+            print("Ошибка при сохранении категорий")
+        }
+    }
+    
     @objc private func cancel() {
         dismiss(animated: true)
     }
@@ -169,28 +183,51 @@ final class NewIrregularEventViewController: UIViewController {
     }
     
     @objc private func create() {
-        let name = enterNameTextField.text ?? ""
-        let category = categoryName
+        guard let name = enterNameTextField.text, !name.isEmpty else { return }
+        guard !categoryName.isEmpty else { return }
+
         let emojiIndex = emojiCollection.indexPathsForSelectedItems?.first
-        let emoji = emojiCollectionData[emojiIndex?.row ?? 0]
+        guard let emoji = emojiCollectionData[emojiIndex?.row ?? 0] as? String else { return }
+
         let colorIndex = colorCollection.indexPathsForSelectedItems?.first
-        let color = colorCollectionData[colorIndex?.row ?? 0]
-        let event = Tracker(name: name, emoji: emoji, color: color, day: nil)
-        
-        var allTrackersInCategory: [Tracker] = []
-        for tracker in trackers {
-            if tracker.label == category {
-                allTrackersInCategory = tracker.trackers
-                trackers.removeAll(where: {$0.label == category})
+        guard let color = colorCollectionData[colorIndex?.row ?? 0] as? UIColor else { return }
+
+        let day = selectedDays
+        let event = Tracker(id: UUID(), name: name, color: color, emoji: emoji, day: day.isEmpty ? nil : day)
+
+        if var category = trackers.first(where: { $0.label == categoryName }) {
+            category.trackers.append(event)
+            if let index = trackers.firstIndex(where: { $0.label == categoryName }) {
+                trackers[index] = category
             }
+        } else {
+            let newCategory = TrackerCategory(label: categoryName, trackers: [event])
+            trackers.append(newCategory)
         }
-        allTrackersInCategory.append(event)
-        let newTrackersElement = TrackerCategory(label: category, trackers: allTrackersInCategory)
-        trackers.append(newTrackersElement)
+
+        saveCategories(categories: trackers)
+
         let notification = Notification(name: Notification.Name("addEvent"))
         NotificationCenter.default.post(notification)
+
         categoryName = ""
-        UIApplication.shared.windows.first?.rootViewController?.dismiss(animated: true, completion: nil)
+        selectedDays = []
+        shortSelectedDays = []
+        print("Создание трекера завершено: \(event)")
+
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc private func changeFirstCell() {
+        let cell = categoriesTable.cellForRow(at: [0,0]) as? IrregularCategoryCell
+        cell?.title.removeFromSuperview()
+        cell?.addSubview(cell!.title)
+        cell?.categoryName.text = categoryName
+        cell?.categoryName.topAnchor.constraint(equalTo: cell!.title.bottomAnchor, constant: 2).isActive = true
+        cell?.categoryName.leadingAnchor.constraint(equalTo: cell!.leadingAnchor, constant: 16).isActive = true
+        cell?.title.leadingAnchor.constraint(equalTo: cell!.leadingAnchor, constant: 16).isActive = true
+        cell?.title.topAnchor.constraint(equalTo: cell!.topAnchor, constant: 15).isActive = true
+        activateButton()
     }
     
     private func activateButton() {
@@ -270,16 +307,16 @@ extension NewIrregularEventViewController: UICollectionViewDelegateFlowLayout {
         return CGSize(width: (view.bounds.width-56) / 6, height: 50)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.bounds.width, height: 40)
+    func collectionView(_ collectionView: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: view.bounds.width, height: 40)
     }
 }
 
@@ -337,6 +374,19 @@ extension NewIrregularEventViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let choiceOfCategoryViewController = CategorySelectionViewController()
+        choiceOfCategoryViewController.categories = categories
+        choiceOfCategoryViewController.delegate = self
         show(choiceOfCategoryViewController, sender: self)
     }
 }
+
+extension NewIrregularEventViewController: CategorySelectionDelegate {
+    func categorySelected(_ category: TrackerCategory) {
+        selectedCategory = category
+        categoryName = category.label
+        print("Выбрана категория: \(category.label)")
+        categoriesTable.reloadData()
+        activateButton()
+    }
+}
+*/

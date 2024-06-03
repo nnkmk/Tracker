@@ -1,14 +1,23 @@
 import UIKit
 
+protocol TrackersViewControllerProtocol: AnyObject {
+    func saveDoneEvent(id: UUID, index: IndexPath)
+    var localTrackers: [TrackerCategory] { get set }
+}
+
+protocol TrackerCellDelegate: AnyObject {
+    func didTapPlusButton(in cell: TrackerCell)
+}
+
 class TrackersViewController: UIViewController {
     
-    static let categories = ["Важное", "Радостные мелочи", "Самочувствие", "Привычки", "Внимательность", "0Спорт"]
-    
-    var currentDate: Date = Date()
-    var choosenDay = ""
-    var dateString = ""
-    var changeByNumbers = "дней"
+    var categories: [TrackerCategory] = []
     var localTrackers: [TrackerCategory] = []
+    var completedTrackers: Set<TrackerRecord> = []
+    var currentDate: Date = Date()
+    var dateString: String = ""
+    var changeByNumbers: String = ""
+    var choosenDay = ""
     
     var trackersCollection: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -88,31 +97,70 @@ class TrackersViewController: UIViewController {
         hideCollection()
         setupProperties()
         setupView()
+        loadCompletedTrackers()
+        updateCollection()
+        
         datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
+    }
+    
+    private func loadInitialCategories() {
+        categories = loadCategories() ?? []
+        localTrackers = categories
+        print("Категории при загрузке TrackersViewController: \(categories)")
     }
     
     private func setupView() {
         view.backgroundColor = .white
+        
         NSLayoutConstraint.activate([
-            plusButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 13),
+            plusButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 50),
             plusButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             plusButton.widthAnchor.constraint(equalToConstant: 19),
             plusButton.heightAnchor.constraint(equalToConstant: 18),
+    
             trackersLabel.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 13),
             trackersLabel.leadingAnchor.constraint(equalTo: plusButton.leadingAnchor),
             datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             datePicker.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 13),
             datePicker.widthAnchor.constraint(equalToConstant: 120),
+            
             searchBar.topAnchor.constraint(equalTo: trackersLabel.bottomAnchor, constant: 7),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            
             stackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
             trackersCollection.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 7),
             trackersCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             trackersCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             trackersCollection.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
+        
+//        NSLayoutConstraint.activate([
+//            plusButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 13),
+//            plusButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+//            plusButton.widthAnchor.constraint(equalToConstant: 19),
+//            plusButton.heightAnchor.constraint(equalToConstant: 18),
+//            
+//            trackersLabel.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 13),
+//            trackersLabel.leadingAnchor.constraint(equalTo: plusButton.leadingAnchor),
+//            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+//            datePicker.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 13),
+//            datePicker.widthAnchor.constraint(equalToConstant: 120),
+//            
+//            searchBar.topAnchor.constraint(equalTo: trackersLabel.bottomAnchor, constant: 7),
+//            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+//            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+//            
+//            stackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+//            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+//            
+//            trackersCollection.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 7),
+//            trackersCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+//            trackersCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+//            trackersCollection.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+//        ])
         
         trackersCollection.isHidden = true
         if !localTrackers.isEmpty {
@@ -126,15 +174,19 @@ class TrackersViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(addEvent), name: Notification.Name("addEvent"), object: nil)
         stackView.addArrangedSubview(starImage)
         stackView.addArrangedSubview(questionLabel)
+        
         view.addSubview(plusButton)
         view.addSubview(trackersLabel)
         view.addSubview(datePicker)
         view.addSubview(stackView)
         view.addSubview(trackersCollection)
         view.addSubview(searchBar)
+        
         trackersCollection.dataSource = self
         trackersCollection.delegate = self
+        
         searchBar.delegate = self
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
@@ -146,9 +198,10 @@ class TrackersViewController: UIViewController {
         var newTrackers: [TrackerCategory] = []
         localTrackers = []
         var isGood = false
-        for tracker in trackers {
-            newCategory = tracker.label
-            for event in tracker.trackers {
+        
+        for category in categories {
+            newCategory = category.label
+            for event in category.trackers {
                 if event.day?.contains(choosenDay) ?? false || event.day == nil {
                     newEvents.append(event)
                     isGood = true
@@ -172,33 +225,112 @@ class TrackersViewController: UIViewController {
             stackView.isHidden = false
             trackersCollection.isHidden = true
         }
+        print("Состояние коллекции скрыто: \(localTrackers.isEmpty ? "пусто" : "не пусто")")
+    }
+    
+    private func saveCategories() {
+        if let encoded = try? JSONEncoder().encode(categories) {
+            UserDefaults.standard.set(encoded, forKey: "categories")
+            print("Категории успешно сохранены")
+        } else {
+            print("Ошибка при сохранении категорий")
+        }
+    }
+    
+    private func loadCategories() -> [TrackerCategory]? {
+        if let savedCategories = UserDefaults.standard.data(forKey: "categories") {
+            if let loadedCategories = try? JSONDecoder().decode([TrackerCategory].self, from: savedCategories) {
+                print("Категории успешно загружены")
+                return loadedCategories
+            } else {
+                print("Ошибка при загрузке категорий")
+            }
+        } else {
+            print("Нет сохраненных категорий")
+        }
+        return nil
+    }
+    
+    private func makeDate(from date: Date, format: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "ru_RU")
+        dateFormatter.dateFormat = format
+        return dateFormatter.string(from: date)
+    }
+    
+    private func updateTrackerCell(at indexPath: IndexPath) {
+        let tracker = localTrackers[indexPath.section].trackers[indexPath.row]
+        let dateString = makeDate(from: currentDate, format: "yyyy/MM/dd")
+        
+        if let cell = trackersCollection.cellForItem(at: indexPath) as? TrackerCell {
+            let numberOfDays = completedTrackers.filter { $0.id == tracker.id }.count
+            cell.quantity.text = "\(numberOfDays) дней"
+            
+            if completedTrackers.contains(TrackerRecord(id: tracker.id, date: dateString)) {
+                cell.plusButton.backgroundColor = tracker.color.withAlphaComponent(0.5)
+                cell.plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
+            } else {
+                cell.plusButton.backgroundColor = tracker.color
+                cell.plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
+            }
+            print("Ячейка с indexPath \(indexPath) успешно обновлена")
+        } else {
+            print("Ошибка: не удалось найти ячейку для indexPath \(indexPath)")
+        }
+    }
+    
+    private func saveCompletedTrackers() {
+        do {
+            let encodedData = try JSONEncoder().encode(Array(completedTrackers))
+            UserDefaults.standard.set(encodedData, forKey: "completedTrackers")
+            print("Выполненные трекеры успешно сохранены: \(completedTrackers)")
+        } catch {
+            print("Ошибка при сохранении выполненных трекеров: \(error)")
+        }
+    }
+    
+    private func loadCompletedTrackers() {
+        if let savedData = UserDefaults.standard.data(forKey: "completedTrackers") {
+            do {
+                completedTrackers = try JSONDecoder().decode(Set<TrackerRecord>.self, from: savedData)
+                print("Выполненные трекеры успешно загружены: \(completedTrackers)")
+            } catch {
+                print("Ошибка при загрузке выполненных трекеров: \(error)")
+            }
+        } else {
+            print("Нет сохраненных выполненных трекеров")
+        }
     }
     
     @objc func datePickerValueChanged(sender: UIDatePicker) {
         currentDate = sender.date
-        makeDate(dateFormat: "EEEE")
+        choosenDay = makeDate(from: currentDate, format: "EEEE")
         updateCollection()
         hideCollection()
         trackersCollection.reloadData()
     }
     
-    @objc   private func plusTapped() {
+    @objc private func plusTapped() {
         let selecterTrackerVC = TypeViewController()
         show(selecterTrackerVC, sender: self)
     }
     
     @objc private func addEvent() {
-        localTrackers = trackers
+        print("Получено уведомление addEvent")
+        categories = loadCategories() ?? []
         updateCollection()
         trackersCollection.reloadData()
         hideCollection()
+        print("Категории после обновления: \(categories)")
+        print("Текущие локальные трекеры: \(localTrackers)")
     }
     
-    @objc   func dismissKeyboard() {
+    @objc func dismissKeyboard() {
         updateCollection()
         searchBar.resignFirstResponder()
     }
 }
+
 
 extension TrackersViewController: UICollectionViewDataSource {
     
@@ -228,7 +360,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         }
         cell?.quantity.text = "\(numberOfDays) \(changeByNumbers)"
         makeDate(dateFormat: "yyyy/MM/dd")
-        if completedTrackers.filter({$0.id == localTrackers[indexPath.section].trackers[indexPath.row].id}).contains(where: {$0.day == dateString}) {
+        if completedTrackers.filter({$0.id == localTrackers[indexPath.section].trackers[indexPath.row].id}).contains(where: {$0.date == dateString}) {
             cell?.plusButton.backgroundColor = localTrackers[indexPath.section].trackers[indexPath.row].color.withAlphaComponent(0.5)
             cell?.plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
         } else {
@@ -299,13 +431,21 @@ extension TrackersViewController: UISearchBarDelegate {
 extension TrackersViewController: TrackersViewControllerProtocol {
     
     func saveDoneEvent(id: UUID, index: IndexPath) {
-        makeDate(dateFormat: "yyyy/MM/dd")
-        if completedTrackers.filter({$0.id == localTrackers[index.section].trackers[index.row].id}).contains(where: {$0.day == dateString}) {
-            completedTrackers.removeAll(where: {$0.id == id && $0.day == dateString})
+        let tracker = localTrackers[index.section].trackers[index.row]
+        let dateString = makeDate(from: currentDate, format: "yyyy/MM/dd")
+        let record = TrackerRecord(id: id, date: dateString)
+        
+        if completedTrackers.contains(record) {
+            completedTrackers.remove(record)
+            print("Трекер \(tracker.name) удален из списка выполненных на дату \(dateString)")
         } else {
-            completedTrackers.append(TrackerRecord(id: id, day: dateString))
+            completedTrackers.insert(record)
+            print("Трекер \(tracker.name) добавлен в список выполненных на дату \(dateString)")
         }
-        trackersCollection.reloadData()
+        saveCompletedTrackers()
+        updateTrackerCell(at: index)
+        trackersCollection.reloadItems(at: [index])
+        print("Коллекция обновлена после сохранения выполнения трекера")
     }
 }
 

@@ -43,13 +43,18 @@ final class ScheduleSelectionViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(scheduleTable)
         view.addSubview(doneButton)
+        
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
+            
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            titleLabel.bottomAnchor.constraint(greaterThanOrEqualTo: scheduleTable.topAnchor, constant: 6),
+            
             scheduleTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scheduleTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
-            scheduleTable.heightAnchor.constraint(equalToConstant: CGFloat(75 * daysOfWeek.count)),
+            scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            scheduleTable.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5),
+            
             doneButton.topAnchor.constraint(equalTo: scheduleTable.bottomAnchor, constant: 16),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),

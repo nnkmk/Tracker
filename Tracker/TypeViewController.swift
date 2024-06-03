@@ -61,14 +61,16 @@ final class TypeViewController: UIViewController {
             irregularEventButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
-    
-    @objc private func irregularTapped() {
-        let irregularEventVC = NewIrregularEventViewController()
-        show(irregularEventVC, sender: self)
-    }
-    
+        
     @objc private func habitTapped() {
         let habitVC = NewHabitViewController()
+        habitVC.isRegular = true
+        show(habitVC, sender: self)
+    }
+
+    @objc private func irregularTapped() {
+        let habitVC = NewHabitViewController()
+        habitVC.isRegular = false
         show(habitVC, sender: self)
     }
 }
