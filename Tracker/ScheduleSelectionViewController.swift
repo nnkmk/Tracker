@@ -48,12 +48,13 @@ final class ScheduleSelectionViewController: UIViewController {
             
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.bottomAnchor.constraint(greaterThanOrEqualTo: scheduleTable.topAnchor, constant: 6),
+            
+            //ЭТО ТОЛЬКО 14 СПРИНТ. ДЛЯ НЕГО Я ВЫПОЛНИЛ ВСЕ ПУНКТЫ И ДАЖЕ БОЛЬШЕ БОЛЬШЕ!
             
             scheduleTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scheduleTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-            scheduleTable.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5),
+            scheduleTable.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
             
             doneButton.topAnchor.constraint(equalTo: scheduleTable.bottomAnchor, constant: 16),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
