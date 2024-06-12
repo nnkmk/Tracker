@@ -45,23 +45,19 @@ final class ScheduleSelectionViewController: UIViewController {
         view.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
-            
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            titleLabel.heightAnchor.constraint(equalToConstant: 50),
             
-            //ЭТО ТОЛЬКО 14 СПРИНТ. ДЛЯ НЕГО Я ВЫПОЛНИЛ ВСЕ ПУНКТЫ И ДАЖЕ БОЛЬШЕ БОЛЬШЕ!
-            
+            scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             scheduleTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scheduleTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            scheduleTable.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-            scheduleTable.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
+            scheduleTable.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -20),
             
-            doneButton.topAnchor.constraint(equalTo: scheduleTable.bottomAnchor, constant: 16),
-            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            doneButton.heightAnchor.constraint(equalToConstant: 60)
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            doneButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     

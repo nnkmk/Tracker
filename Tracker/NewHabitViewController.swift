@@ -8,7 +8,6 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
     
     let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Новая привычка"
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -20,20 +19,59 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
         field.backgroundColor = UIColor(red: 0.902, green: 0.91, blue: 0.922, alpha: 0.3)
         field.layer.cornerRadius = 16
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.heightAnchor.constraint(equalToConstant: 65).isActive = true
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: field.frame.height))
         field.leftView = paddingView
         field.leftViewMode = .always
         return field
     }()
     
-    let categoriesTable: UITableView = {
-        let table = UITableView()
-        table.register(HabitCategoryCell.self, forCellReuseIdentifier: "category")
-        table.isScrollEnabled = false
-        table.separatorStyle = .singleLine
-        table.layer.cornerRadius = 16
-        table.backgroundColor = UIColor(red: 0.902, green: 0.91, blue: 0.922, alpha: 0.3)
-        return table
+    let categoryButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Категория", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = UIColor(red: 0.902, green: 0.91, blue: 0.922, alpha: 0.3)
+        button.layer.cornerRadius = 16
+        button.contentHorizontalAlignment = .left
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
+        
+        let arrow = UIImageView(image: UIImage(systemName: "chevron.right"))
+        arrow.tintColor = .lightGray
+        arrow.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(arrow)
+        NSLayoutConstraint.activate([
+            arrow.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            arrow.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -16)
+        ])
+        
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: 65).isActive = true
+        button.addTarget(nil, action: #selector(categoryTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    let scheduleButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Расписание", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = UIColor(red: 0.902, green: 0.91, blue: 0.922, alpha: 0.3)
+        button.layer.cornerRadius = 16
+        button.contentHorizontalAlignment = .left
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
+        
+        let arrow = UIImageView(image: UIImage(systemName: "chevron.right"))
+        arrow.tintColor = .lightGray
+        arrow.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(arrow)
+        NSLayoutConstraint.activate([
+            arrow.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            arrow.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -16)
+        ])
+        
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: 65).isActive = true
+        button.addTarget(nil, action: #selector(scheduleTapped), for: .touchUpInside)
+        return button
     }()
     
     let firstStack: UIStackView = {
@@ -103,6 +141,16 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
         return scroll
     }()
     
+    let categoriesTable: UITableView = {
+        let table = UITableView()
+        table.register(HabitCategoryCell.self, forCellReuseIdentifier: "category")
+        table.isScrollEnabled = false
+        table.separatorStyle = .singleLine
+        table.layer.cornerRadius = 16
+        table.backgroundColor = UIColor(red: 0.902, green: 0.91, blue: 0.922, alpha: 0.3)
+        return table
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupProperties()
@@ -110,6 +158,8 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
     }
     
     private func setupView() {
+        titleLabel.text = isRegular ? "Новая привычка" : "Новое нерегулярное событие"
+        
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -119,11 +169,8 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
             scroll.topAnchor.constraint(equalTo: titleLabel.bottomAnchor),
             scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            enterNameTextField.heightAnchor.constraint(equalToConstant: 71),
-            
             firstStack.topAnchor.constraint(equalTo: scroll.topAnchor, constant: 24),
             firstStack.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
-            firstStack.heightAnchor.constraint(equalToConstant: 225),
             firstStack.leadingAnchor.constraint(equalTo: scroll.leadingAnchor, constant: 16),
             
             emojiCollection.topAnchor.constraint(equalTo: firstStack.bottomAnchor, constant: 24),
@@ -143,9 +190,9 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
             secondStack.centerXAnchor.constraint(equalTo: scroll.centerXAnchor),
             secondStack.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 24),
         ])
-        if !isRegular {
-            categoriesTable.isHidden = true
-            titleLabel.text = "Новое нерегулярное событие"
+        
+        if isRegular {
+            firstStack.addArrangedSubview(scheduleButton)
         }
     }
     
@@ -160,7 +207,10 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
         view.backgroundColor = .white
         
         firstStack.addArrangedSubview(enterNameTextField)
-        firstStack.addArrangedSubview(categoriesTable)
+        firstStack.addArrangedSubview(categoryButton)
+        if isRegular {
+            firstStack.addArrangedSubview(scheduleButton)
+        }
         
         secondStack.addArrangedSubview(cancelButton)
         secondStack.addArrangedSubview(createButton)
@@ -169,6 +219,7 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
         scroll.addSubview(emojiCollection)
         scroll.addSubview(colorCollection)
         scroll.addSubview(secondStack)
+        scroll.addSubview(categoriesTable)
         
         view.addSubview(titleLabel)
         view.addSubview(scroll)
@@ -186,7 +237,7 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
     }
     
     private func activateButton() {
-        if enterNameTextField.hasText && !categoryName.isEmpty && !selectedDays.isEmpty && !(emojiCollection.indexPathsForSelectedItems?.isEmpty ?? false) && !(colorCollection.indexPathsForSelectedItems?.isEmpty ?? false) {
+        if enterNameTextField.hasText && !categoryName.isEmpty && (!isRegular || !selectedDays.isEmpty) && !(emojiCollection.indexPathsForSelectedItems?.isEmpty ?? false) && !(colorCollection.indexPathsForSelectedItems?.isEmpty ?? false) {
             createButton.backgroundColor = .black
             createButton.isEnabled = true
         }
@@ -273,6 +324,18 @@ final class NewHabitViewController: UIViewController, CategorySelectionDelegate 
         activateButton()
     }
     
+    @objc private func categoryTapped() {
+        let choiceOfCategoryViewController = CategorySelectionViewController()
+        choiceOfCategoryViewController.delegate = self
+        choiceOfCategoryViewController.categories = self.categories
+        show(choiceOfCategoryViewController, sender: self)
+    }
+    
+    @objc private func scheduleTapped() {
+        let scheduleViewController = ScheduleSelectionViewController()
+        show(scheduleViewController, sender: self)
+    }
+    
     @objc func dismissKeyboard() {
         enterNameTextField.resignFirstResponder()
     }
@@ -296,7 +359,7 @@ extension NewHabitViewController: UITextFieldDelegate {
 extension NewHabitViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return isRegular ? 2 : 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -308,8 +371,10 @@ extension NewHabitViewController: UITableViewDataSource {
         switch indexPath.row {
         case 0:
             categoryCell.title.text = "Категория"
-        default:
+        case 1:
             categoryCell.title.text = "Расписание"
+        default:
+            break
         }
         return categoryCell
     }
