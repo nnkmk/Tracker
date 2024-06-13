@@ -16,18 +16,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="2EV-AG-8Zw">
-                                <rect key="frame" x="76" y="362" width="240" height="128"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo" translatesAutoresizingMaskIntoConstraints="NO" id="2EV-AG-8Zw">
+                                <rect key="frame" x="151" y="379" width="91" height="94"/>
                                 <color key="backgroundColor" red="0.21568627450980393" green="0.44705882352941173" blue="0.90588235294117647" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" red="0.2156862745" green="0.44705882349999998" blue="0.90588235289999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="76" id="bgs-bC-Nm0"/>
-                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="303" id="jiI-2t-soh"/>
-                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="pyx-N7-cex"/>
-                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="u9r-gZ-iHT"/>
+                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="H8s-fX-XQ0"/>
+                            <constraint firstItem="2EV-AG-8Zw" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="gdz-dc-1y1"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -37,6 +35,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Logo" width="90" height="93"/>
+        <image name="logo" width="91" height="94"/>
     </resources>
 </document>
